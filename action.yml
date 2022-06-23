@@ -1,0 +1,24 @@
+name: Build images
+description: Builds Singularity images from Picasso definition files, pushes them to Artifactory, and applies tags.
+inputs:
+  images:
+    description: "A JSON-encoded array of image definition objects with the form {name: ..., path: ..., tag: ...}."
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: actions/github-script@v6
+      with:
+        script: |
+          const event_type = 'build-images'
+          const client_payload = {
+            commit_hash: context.sha,
+            commit_ref: context.ref,
+            images: JSON.parse('${{ inputs.images }}')
+          }
+          var status = await github.rest.repos.createDispatchEvent({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            event_type: event_type,
+            client_payload: client_payload
+          })
