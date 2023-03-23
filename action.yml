@@ -11,9 +11,16 @@ runs:
       with:
         script: |
           const event_type = 'build-images'
+          function choose_commit() {
+            if (context.payload.pull_request) {
+              return context.payload.pull_request.head
+            }
+            return context
+          }
+          const commit = choose_commit()
           const client_payload = {
-            commit_hash: context.sha,
-            commit_ref: context.ref,
+            commit_hash: commit.sha,
+            commit_ref: commit.ref,
             images: JSON.parse('${{ inputs.images }}')
           }
           var status = await github.rest.repos.createDispatchEvent({
